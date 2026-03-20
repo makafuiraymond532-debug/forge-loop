@@ -7,7 +7,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="${HOME}/.claude"
 
-echo "Installing forge-loop..."
+echo "Installing forge-loop Claude Code driver..."
 
 # Ensure all target directories exist
 mkdir -p "${CLAUDE_DIR}/skills/forge"
@@ -50,7 +50,7 @@ ln -s "${SCRIPT_DIR}/agents/forge.md" "${CLAUDE_DIR}/agents/forge.md"
 echo "  Linked agents/forge.md"
 
 echo ""
-echo "Done. forge-loop installed."
+echo "Done. forge-loop Claude Code driver installed."
 echo ""
 echo "Usage: /forge \"scope\" --coverage N --speed -N%"
 echo ""

@@ -18,12 +18,12 @@
 
 # forge-loop
 
-**Autoregressive codebase improvement for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).**
+**Forge Core plus a first-class [Claude Code](https://docs.anthropic.com/en/docs/claude-code) driver for autoregressive codebase improvement.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-green.svg)](CHANGELOG.md)
 
-A structured, KPI-driven, self-correcting loop that tracks metrics (coverage, speed, quality), runs fresh-context audits, rotates strategies when stagnating, and uses exact control markers to pause or complete the loop.
+Forge is a protocol plus an adapter. The protocol defines KPI tracking, state, strategy rotation, evaluation cadence, and completion rules. The bundled adapter makes that protocol run inside Claude Code with commands, agents, and a stop hook.
 
 ```
 You: /forge "API controllers" --coverage 90 --speed -30%
@@ -33,6 +33,42 @@ Forge: Measuring baseline... 85.2% coverage, 120s
        85.8% (+0.6%), 118s (-2s) ✓
        ...iterates until all targets met simultaneously...
 ```
+
+---
+
+## Core vs Driver
+
+### Forge Core
+
+The portable part of the system:
+
+- iteration protocol (Orient → Measure → Evaluate → Decide → Execute → Verify → Record → Complete)
+- state format and autoregressive memory
+- KPI targets (coverage, speed, quality)
+- strategy selection and stagnation handling
+- lessons and ideas backlog
+
+### Claude Code Driver
+
+The bundled runtime adapter in this repo:
+
+- `/forge` command
+- `/cancel-ralph` command
+- `agents/forge.md`
+- `hooks/stop-hook.sh`
+- install script that wires those assets into `~/.claude/`
+
+This is the only first-class driver shipped in `v0.3.0`.
+
+## Support Matrix
+
+| Environment | Status | What is actually shipped |
+|-------------|--------|--------------------------|
+| Claude Code | First-class | Command, agent, stop-hook driver, installer |
+| Codex CLI | Protocol-only | Use Forge Core manually; no native loop driver shipped |
+| Other agents / plain shell | Protocol-only | Reuse the protocol and state model manually |
+
+Forge is not claiming native parity across agent runtimes. `v0.3.0` draws that line explicitly.
 
 ---
 
@@ -84,11 +120,13 @@ When coverage improves by less than 0.1% for two consecutive iterations, forge i
 
 ### Fresh-Context Evaluation
 
-Every 3rd iteration, forge spawns a subagent that audits the scope with zero knowledge of KPI targets or iteration history. This prevents anchoring bias — the agent evaluating the code has no stake in the numbers looking good.
+Every 3rd iteration, Forge runs a fresh-context audit pass. In Claude Code this is typically a subagent; in other environments it may be an isolated reviewer or manual second pass. The protocol requires fresh context, not a specific vendor primitive.
 
 ---
 
 ## Installation
+
+### Claude Code Driver
 
 ```bash
 git clone https://github.com/DjinnFoundry/forge-loop.git
@@ -96,7 +134,7 @@ cd forge-loop
 ./install.sh
 ```
 
-The installer symlinks the skill, command, and agent files into your `~/.claude/` directory.
+The installer symlinks the Claude Code driver assets into your `~/.claude/` directory.
 
 **Important**: You also need to configure the stop hook that drives iteration. See [hooks/README.md](hooks/README.md) for setup instructions. If you already have the Ralph Wiggum stop hook configured, forge works with it automatically.
 
@@ -113,17 +151,32 @@ cp agents/forge.md ~/.claude/agents/forge.md
 # Stop hook — see hooks/README.md for settings.json setup
 ```
 
+### Codex / Manual Use
+
+No native Codex loop driver ships in `v0.3.0`.
+
+If you want to use Forge outside Claude Code:
+
+1. Read [skills/forge/SKILL.md](skills/forge/SKILL.md) as the protocol source of truth.
+2. Run one iteration at a time manually in your agent/runtime.
+3. Persist state in the documented forge-state format.
+4. Re-enter the next iteration using your runtime's own control surface.
+
+That is protocol reuse, not first-class runtime support.
+
 ---
 
 ## Usage
 
-### Basic
+### Claude Code
+
+#### Basic
 
 ```
 /forge "LiveView components" --coverage 95 --speed -20%
 ```
 
-### All options
+#### All options
 
 ```
 /forge "SCOPE" --coverage N --speed -N% --quality strict|moderate|lax --max-iterations N
@@ -137,17 +190,25 @@ cp agents/forge.md ~/.claude/agents/forge.md
 | `--quality` | moderate | strict (0 high, 0 med) / moderate (0 high, ≤3 med) / lax (0 high, ≤5 med) |
 | `--max-iterations` | 20 | Safety limit |
 
-### Control
+#### Control
 
 - **Pause**: Forge outputs `RALPH_PAUSE` when it needs your input
 - **Cancel**: `/cancel-ralph` stops the loop
 - **Inspect state**: `.claude/forge-state.SESSION.md` is preserved when you pause or cancel
 
+### Protocol-Only / Manual
+
+Use the same protocol phases and state format, but drive the loop yourself. Today that means:
+
+- no bundled Codex command
+- no bundled Codex stop hook
+- no runtime-specific install story outside Claude Code
+
 ---
 
 ## State File
 
-Forge persists its state in `.claude/forge-state.SESSION.md` — a YAML frontmatter + markdown log that survives context compaction. Each iteration appends its KPIs, strategy, actions, and lessons. This is the autoregressive memory.
+Forge persists its state in `.claude/forge-state.SESSION.md` in the Claude Code driver. Other runtimes can reuse the same format in a different state root. Each iteration appends its KPIs, strategy, actions, and lessons. This is the autoregressive memory.
 
 ```yaml
 ---
@@ -205,7 +266,7 @@ forge-loop/
 └── README.md
 ```
 
-The iteration engine uses the Ralph loop pattern: each time the Claude Code session tries to exit, the stop hook re-injects the forge prompt. The forge state file provides continuity across iterations and context compactions.
+The current runtime layout is intentionally asymmetric: the protocol is portable, but the bundled automation is Claude-specific. The Claude driver uses the Ralph loop pattern: each time the Claude Code session tries to exit, the stop hook re-injects the forge prompt. The forge state file provides continuity across iterations and context compactions.
 
 ---
 
@@ -235,14 +296,30 @@ Distilled from studying autoresearch, Ralph Wiggum, pi-autoresearch, SICA, and a
 | Completion | Manual / hope | Exact completion marker after protocol checks |
 | Lessons | Lost between iterations | Accumulated, inform strategy selection |
 | Stagnation | Repeats same approach | Detects + rotates after low-delta iterations |
+| Portability | Rebuild per runtime | Portable protocol, Claude driver bundled |
 
 ---
 
+## Claims We Are Willing To Make
+
+- Forge packages proven loop patterns into a reusable protocol with a first-class Claude Code driver.
+- Forge improves repeatability versus ad-hoc prompting when you care about KPI targets, iteration memory, and strategy rotation.
+- Forge does **not** yet provide native Codex parity or a universal runtime adapter layer.
+- Forge is more preconfigured than raw hooks. It is not a new primitive.
+
 ## Requirements
+
+### Claude Code Driver
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - `jq` (for the stop hook)
 - A project with a test suite that reports coverage
+
+### Protocol-Only Reuse
+
+- Any agent/runtime that can follow the Forge protocol manually
+- Some place to persist Forge state between iterations
+- A project with a measurable test/quality loop
 
 ## Adapting for other languages
 

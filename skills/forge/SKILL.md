@@ -1,11 +1,11 @@
 ---
 name: forge
-description: KPI-driven autoregressive codebase improvement loop. Tracks coverage/speed/quality with baselines, rotates strategies on stagnation, uses fresh-context subagents for unbiased evaluation. Activates when user mentions "forge it", "forge loop", "quality loop", "kpi loop", "improvement loop".
+description: Forge Core protocol plus a Claude Code driver for KPI-driven autoregressive codebase improvement. Tracks coverage/speed/quality with baselines, rotates strategies on stagnation, and uses fresh-context evaluation. Activates when user mentions "forge it", "forge loop", "quality loop", "kpi loop", "improvement loop".
 ---
 
-# The Forge — Autoregressive Codebase Improvement Loop
+# The Forge — Core Protocol Plus Claude Code Driver
 
-A structured, KPI-driven, self-correcting loop that tracks coverage/speed/quality with baselines and targets, evaluates with fresh-context audits, rotates strategies when stagnating, and knows when it's done.
+A structured, KPI-driven improvement protocol that tracks coverage/speed/quality with baselines and targets, evaluates with fresh-context audits, rotates strategies when stagnating, and records lessons across iterations.
 
 Built on the Ralph Wiggum loop pattern (Geoff Huntley), informed by Karpathy's autoregressive philosophy and SICA's compounding iteration approach.
 
@@ -18,10 +18,17 @@ Built on the Ralph Wiggum loop pattern (Geoff Huntley), informed by Karpathy's a
 ## Architecture
 
 ```
-/forge command
-  ├── Creates .claude/forge-state.SESSION.md  (KPI state, autoregressive log)
-  ├── Creates .claude/ralph-loop.SESSION.local.md  (iteration engine)
-  └── Stop hook drives the loop (re-injects prompt on session exit)
+Forge Core
+  ├── Protocol phases (A through H)
+  ├── State format and KPI model
+  ├── Strategy selection + stagnation logic
+  └── Fresh-context evaluation expectations
+
+Claude Code driver
+  ├── /forge command
+  ├── .claude/forge-state.SESSION.md
+  ├── .claude/ralph-loop.SESSION.local.md
+  └── Stop hook re-injects prompt on session exit
 
 Each iteration (one OODA cycle):
   ├── A. ORIENT   — Read forge-state, understand position + trends
@@ -34,11 +41,26 @@ Each iteration (one OODA cycle):
   └── H. COMPLETE — All targets met simultaneously? → RALPH_COMPLETE
 ```
 
+## Driver model
+
+Forge has two layers:
+
+- **Forge Core** — portable protocol, state model, KPI semantics, strategies, and completion rules
+- **Driver** — runtime-specific integration that launches the loop, persists state, and handles pause/continue mechanics
+
+`v0.3.0` ships one first-class driver:
+
+- **Claude Code** — command, agent, and stop-hook integration are bundled here
+
+Other environments can reuse Forge Core manually, but no native Codex driver is
+shipped yet. Do not claim parity that is not implemented.
+
 ## The Forge Protocol
 
 ### A. ORIENT — Read State
 
-Read `.claude/forge-state.SESSION.md` (SESSION from ralph state file).
+Read the Forge state file for this session. In the Claude Code driver that is
+`.claude/forge-state.SESSION.md` (SESSION from ralph state file).
 
 - Parse baseline KPIs, targets, iteration history, current strategy
 - Check `stagnation_count` — if >= 3, MUST rotate strategy
@@ -144,7 +166,8 @@ Re-measure with coverage to capture post-change KPIs.
 
 ### G. RECORD — Update Forge State (THE Autoregressive Step)
 
-Update `.claude/forge-state.SESSION.md`:
+Update the Forge state file for the current driver. In Claude Code that is
+`.claude/forge-state.SESSION.md`:
 
 1. **Append iteration entry** with:
    - Iteration number
@@ -210,7 +233,7 @@ When stagnation triggers (or when you run out of ideas within a strategy):
 
 ## Forge State File Format
 
-`.claude/forge-state.SESSION.md`:
+Claude Code default path: `.claude/forge-state.SESSION.md`
 
 ```yaml
 ---
@@ -270,3 +293,10 @@ ideas:
 8. **Simpler is better** — code deletion at same KPIs is always a win. Don't add complexity for marginal gains.
 9. **Clean revert on failure** — restore clean state before the next iteration. Never leave dirty files.
 10. **Never stop to ask** — if stuck, think harder. Re-read code, review backlog, combine near-misses, try the inverse.
+
+## Support posture
+
+- Claude Code support is first-class in this repo
+- Codex support is protocol-only and manual today
+- Other runtimes may reuse the protocol, but should not be described as
+  officially supported unless they ship a real driver

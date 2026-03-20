@@ -14,6 +14,7 @@ Thanks for your interest in contributing.
 ## What we're looking for
 
 - **New strategies** — if you've found an effective codebase improvement pattern, add it to the strategy table in `SKILL.md`
+- **New drivers** — Codex/manual/runtime adapters that reuse Forge Core without weakening the protocol
 - **Language adapters** — test runner configurations for languages beyond the current set
 - **Stop hook improvements** — better completion detection, error handling
 - **Bug fixes** — especially around state file parsing and edge cases
@@ -28,7 +29,7 @@ Thanks for your interest in contributing.
 
 ## Architecture decisions
 
-The skill file (`skills/forge/SKILL.md`) is the source of truth. The command and agent files reference it. If you're changing behavior, the skill file is where it lives.
+The skill file (`skills/forge/SKILL.md`) is the source of truth for Forge Core. The command, agent, and stop hook are the Claude Code driver. If you're changing protocol behavior, the skill file is where it lives.
 
 The stop hook is designed to be compatible with Ralph Wiggum loops. Don't break that compatibility.
 

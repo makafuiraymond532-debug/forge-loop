@@ -7,6 +7,8 @@ argument-hint: '"SCOPE" --coverage N --speed -N% --quality strict|moderate|lax [
 
 @skills/forge/SKILL.md
 
+This command is the Claude Code driver for Forge Core.
+
 ## Arguments
 
 **Arguments provided:** $ARGUMENTS

@@ -6,6 +6,8 @@ description: "Stop the active Forge/Ralph loop in this project"
 
 Stop the active loop for the current project.
 
+This command is part of the Claude Code driver for Forge Core.
+
 ## Instructions
 
 1. Look for `.claude/ralph-loop.*.local.md` in the current project.

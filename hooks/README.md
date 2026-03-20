@@ -1,6 +1,6 @@
-# Forge Stop Hook
+# Forge Claude Code Driver: Stop Hook
 
-The forge loop uses a stop hook to re-inject the prompt after each iteration. This is the same mechanism as the Ralph Wiggum loop — forge creates `ralph-loop.*.local.md` state files that the stop hook reads and re-injects.
+This file documents the Claude Code driver for Forge. The hook re-injects the next iteration prompt after each Claude Code session exit. This is the same mechanism as the Ralph Wiggum loop — Forge creates `ralph-loop.*.local.md` state files that the stop hook reads and re-injects.
 
 ## How it works
 
@@ -36,6 +36,8 @@ Add this to your `~/.claude/settings.json` under the `hooks` key:
 Replace `/path/to/forge-loop` with the actual path where you cloned the repo.
 
 **Already have the Ralph Wiggum stop hook?** Forge works with it automatically — it uses the same `.claude/ralph-loop.*.local.md` state file format. No additional configuration needed.
+
+No native Codex driver is shipped here. This hook is Claude Code-specific.
 
 ## Completion signals
 
@@ -81,5 +83,4 @@ Both files live in `.claude/` which is typically gitignored. Stale files (>24h) 
 
 The stop hook requires:
 - `jq` — for parsing the hook input JSON and transcript
-- `perl` — for extracting `<promise>` tags (standard on macOS/Linux)
 - `sed`, `awk`, `grep` — standard Unix tools

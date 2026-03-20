@@ -1,6 +1,6 @@
 ---
 name: forge
-description: KPI-driven autoregressive codebase improvement. Tracks coverage/speed/quality, rotates strategies on stagnation, uses fresh-context evaluation.
+description: Claude Code driver agent for Forge Core. Tracks coverage/speed/quality, rotates strategies on stagnation, and runs fresh-context evaluation.
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: opus
 ---

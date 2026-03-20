@@ -21,7 +21,7 @@
 **A task loop with KPI guardrails for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and Codex/manual workflows.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.5.1-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.6.0-green.svg)](CHANGELOG.md)
 
 Forge is a protocol plus adapters. It takes open-text software tasks, keeps coverage/speed/quality as guardrails, records state across iterations, and runs until the work is honestly done or you stop it.
 

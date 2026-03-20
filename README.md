@@ -18,10 +18,10 @@
 
 # forge-loop
 
-**Forge Core plus a first-class [Claude Code](https://docs.anthropic.com/en/docs/claude-code) driver for autoregressive codebase improvement.**
+**Forge Core with first-class drivers for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and Codex/manual workflows.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-green.svg)](CHANGELOG.md)
 
 Forge is a protocol plus an adapter. The protocol defines KPI tracking, state, strategy rotation, evaluation cadence, and completion rules. The bundled adapter makes that protocol run inside Claude Code with commands, agents, and a stop hook.
 
@@ -58,17 +58,29 @@ The bundled runtime adapter in this repo:
 - `hooks/stop-hook.sh`
 - install script that wires those assets into `~/.claude/`
 
-This is the only first-class driver shipped in `v0.3.0`.
+### Codex Driver
+
+The bundled Codex/manual adapter in this repo:
+
+- `install-codex.sh`
+- `drivers/codex/bin/forge-init`
+- `drivers/codex/bin/forge-continue`
+- `drivers/codex/bin/forge-cancel`
+- `.codex/forge/` state layout for per-project sessions
+
+Both drivers are first-class in `v0.4.0`. The difference is automation depth:
+Claude gets hook-driven iteration; Codex gets manual driver scripts that print
+the next prompt and manage session state.
 
 ## Support Matrix
 
 | Environment | Status | What is actually shipped |
 |-------------|--------|--------------------------|
 | Claude Code | First-class | Command, agent, stop-hook driver, installer |
-| Codex CLI | Protocol-only | Use Forge Core manually; no native loop driver shipped |
+| Codex CLI | First-class manual driver | Install script, `forge-init`, `forge-continue`, `forge-cancel`, project-local state |
 | Other agents / plain shell | Protocol-only | Reuse the protocol and state model manually |
 
-Forge is not claiming native parity across agent runtimes. `v0.3.0` draws that line explicitly.
+Forge is not claiming native parity across agent runtimes. `v0.4.0` ships two real drivers with different control surfaces.
 
 ---
 
@@ -151,18 +163,29 @@ cp agents/forge.md ~/.claude/agents/forge.md
 # Stop hook — see hooks/README.md for settings.json setup
 ```
 
+### Codex Driver
+
+```bash
+git clone https://github.com/DjinnFoundry/forge-loop.git
+cd forge-loop
+./install-codex.sh
+```
+
+The Codex installer links Forge Core into `~/.codex/skills/forge/` and installs
+driver entrypoints into `~/.codex/bin/`.
+
 ### Codex / Manual Use
 
-No native Codex loop driver ships in `v0.3.0`.
+Codex support is manual by design, but it is now a real shipped driver.
 
-If you want to use Forge outside Claude Code:
+Typical flow:
 
-1. Read [skills/forge/SKILL.md](skills/forge/SKILL.md) as the protocol source of truth.
-2. Run one iteration at a time manually in your agent/runtime.
-3. Persist state in the documented forge-state format.
-4. Re-enter the next iteration using your runtime's own control surface.
+1. Run `forge-init "scope" ...` in the target project.
+2. Paste the printed prompt into Codex.
+3. After each iteration, run `forge-continue` to print the next prompt.
+4. Use `forge-cancel` to stop the active loop while preserving Forge state.
 
-That is protocol reuse, not first-class runtime support.
+This is a first-class manual driver, not a hook-based runtime integration.
 
 ---
 
@@ -200,15 +223,20 @@ That is protocol reuse, not first-class runtime support.
 
 Use the same protocol phases and state format, but drive the loop yourself. Today that means:
 
-- no bundled Codex command
-- no bundled Codex stop hook
-- no runtime-specific install story outside Claude Code
+- no bundled driver beyond Claude Code and Codex
+- no automatic hook/runtime integration outside Claude Code
+- no runtime-specific install story beyond the shipped drivers
 
 ---
 
 ## State File
 
-Forge persists its state in `.claude/forge-state.SESSION.md` in the Claude Code driver. Other runtimes can reuse the same format in a different state root. Each iteration appends its KPIs, strategy, actions, and lessons. This is the autoregressive memory.
+Forge persists its state in driver-specific roots:
+
+- Claude Code: `.claude/forge-state.SESSION.md`
+- Codex: `.codex/forge/forge-state.SESSION.md`
+
+Other runtimes can reuse the same format in a different state root. Each iteration appends its KPIs, strategy, actions, and lessons. This is the autoregressive memory.
 
 ```yaml
 ---
@@ -256,17 +284,28 @@ forge-loop/
 ├── skills/forge/SKILL.md    ← The protocol (source of truth)
 ├── commands/forge.md         ← Claude Code /forge command
 ├── commands/cancel-ralph.md  ← Stops the active loop in this project
+├── drivers/codex/            ← Codex/manual driver scripts + prompt template
+│   ├── bin/
+│   │   ├── forge-init
+│   │   ├── forge-continue
+│   │   └── forge-cancel
+│   ├── prompt.md
+│   └── README.md
 ├── agents/forge.md           ← Subagent for spawning forge on subsystems
 ├── hooks/                    ← Iteration engine
 │   ├── README.md             ← Hook setup instructions
 │   └── stop-hook.sh          ← Stop hook script
 ├── install.sh                ← Installer script
+├── install-codex.sh          ← Codex driver installer
+├── tests/
+│   ├── stop-hook.test.sh
+│   └── codex-driver.test.sh
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 └── README.md
 ```
 
-The current runtime layout is intentionally asymmetric: the protocol is portable, but the bundled automation is Claude-specific. The Claude driver uses the Ralph loop pattern: each time the Claude Code session tries to exit, the stop hook re-injects the forge prompt. The forge state file provides continuity across iterations and context compactions.
+The runtime layout is intentionally asymmetric: the protocol is portable, while drivers map that protocol to their runtime's real affordances. The Claude driver uses the Ralph loop pattern and a stop hook. The Codex driver uses explicit shell entrypoints and project-local state files. Both preserve the same Forge Core semantics.
 
 ---
 
@@ -296,15 +335,15 @@ Distilled from studying autoresearch, Ralph Wiggum, pi-autoresearch, SICA, and a
 | Completion | Manual / hope | Exact completion marker after protocol checks |
 | Lessons | Lost between iterations | Accumulated, inform strategy selection |
 | Stagnation | Repeats same approach | Detects + rotates after low-delta iterations |
-| Portability | Rebuild per runtime | Portable protocol, Claude driver bundled |
+| Portability | Rebuild per runtime | Portable protocol, Claude and Codex drivers bundled |
 
 ---
 
 ## Claims We Are Willing To Make
 
-- Forge packages proven loop patterns into a reusable protocol with a first-class Claude Code driver.
+- Forge packages proven loop patterns into a reusable protocol with first-class Claude Code and Codex/manual drivers.
 - Forge improves repeatability versus ad-hoc prompting when you care about KPI targets, iteration memory, and strategy rotation.
-- Forge does **not** yet provide native Codex parity or a universal runtime adapter layer.
+- Forge does **not** yet provide universal runtime adapter parity beyond the shipped drivers.
 - Forge is more preconfigured than raw hooks. It is not a new primitive.
 
 ## Requirements
@@ -314,6 +353,13 @@ Distilled from studying autoresearch, Ralph Wiggum, pi-autoresearch, SICA, and a
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - `jq` (for the stop hook)
 - A project with a test suite that reports coverage
+
+### Codex Driver
+
+- Codex CLI
+- `jq`
+- A project with a test suite that reports coverage
+- `~/.codex/bin` on your `PATH` if you want driver commands globally available
 
 ### Protocol-Only Reuse
 

@@ -1,9 +1,9 @@
 ---
 name: forge
-description: Forge Core protocol plus a Claude Code driver for KPI-driven autoregressive codebase improvement. Tracks coverage/speed/quality with baselines, rotates strategies on stagnation, and uses fresh-context evaluation. Activates when user mentions "forge it", "forge loop", "quality loop", "kpi loop", "improvement loop".
+description: Forge Core protocol plus Claude Code and Codex/manual drivers for KPI-driven autoregressive codebase improvement. Tracks coverage/speed/quality with baselines, rotates strategies on stagnation, and uses fresh-context evaluation. Activates when user mentions "forge it", "forge loop", "quality loop", "kpi loop", "improvement loop".
 ---
 
-# The Forge — Core Protocol Plus Claude Code Driver
+# The Forge — Core Protocol Plus Claude Code and Codex Drivers
 
 A structured, KPI-driven improvement protocol that tracks coverage/speed/quality with baselines and targets, evaluates with fresh-context audits, rotates strategies when stagnating, and records lessons across iterations.
 
@@ -48,19 +48,22 @@ Forge has two layers:
 - **Forge Core** — portable protocol, state model, KPI semantics, strategies, and completion rules
 - **Driver** — runtime-specific integration that launches the loop, persists state, and handles pause/continue mechanics
 
-`v0.3.0` ships one first-class driver:
+`v0.4.0` ships two first-class drivers:
 
 - **Claude Code** — command, agent, and stop-hook integration are bundled here
+- **Codex** — `forge-init`, `forge-continue`, and `forge-cancel` manage a manual loop with project-local state
 
-Other environments can reuse Forge Core manually, but no native Codex driver is
-shipped yet. Do not claim parity that is not implemented.
+Other environments can reuse Forge Core manually, but should not be described as
+officially supported unless they ship a real driver.
 
 ## The Forge Protocol
 
 ### A. ORIENT — Read State
 
-Read the Forge state file for this session. In the Claude Code driver that is
-`.claude/forge-state.SESSION.md` (SESSION from ralph state file).
+Read the Forge state file for this session. Driver defaults:
+
+- Claude Code: `.claude/forge-state.SESSION.md`
+- Codex: `.codex/forge/forge-state.SESSION.md`
 
 - Parse baseline KPIs, targets, iteration history, current strategy
 - Check `stagnation_count` — if >= 3, MUST rotate strategy
@@ -166,8 +169,10 @@ Re-measure with coverage to capture post-change KPIs.
 
 ### G. RECORD — Update Forge State (THE Autoregressive Step)
 
-Update the Forge state file for the current driver. In Claude Code that is
-`.claude/forge-state.SESSION.md`:
+Update the Forge state file for the current driver. Driver defaults:
+
+- Claude Code: `.claude/forge-state.SESSION.md`
+- Codex: `.codex/forge/forge-state.SESSION.md`
 
 1. **Append iteration entry** with:
    - Iteration number
@@ -233,7 +238,10 @@ When stagnation triggers (or when you run out of ideas within a strategy):
 
 ## Forge State File Format
 
-Claude Code default path: `.claude/forge-state.SESSION.md`
+Driver defaults:
+
+- Claude Code: `.claude/forge-state.SESSION.md`
+- Codex: `.codex/forge/forge-state.SESSION.md`
 
 ```yaml
 ---
@@ -297,6 +305,6 @@ ideas:
 ## Support posture
 
 - Claude Code support is first-class in this repo
-- Codex support is protocol-only and manual today
+- Codex support is first-class as a manual driver in this repo
 - Other runtimes may reuse the protocol, but should not be described as
   officially supported unless they ship a real driver

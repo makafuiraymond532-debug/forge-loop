@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_DIR="$(pwd)/.codex/forge"
+
+choose_session() {
+  local explicit_session="${1:-}"
+  if [[ -n "$explicit_session" ]]; then
+    printf '%s\n' "$explicit_session"
+    return 0
+  fi
+
+  local active_file
+  active_file="$(find "$STATE_DIR" -maxdepth 1 -name 'loop-state.*.md' -type f -print | sort | while read -r file; do
+    active="$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$file" | awk -F: '$1=="active" { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }')"
+    if [[ "$active" == "true" ]]; then
+      printf '%s\n' "$file"
+      break
+    fi
+  done)"
+
+  if [[ -z "$active_file" ]]; then
+    echo "Error: No active Codex Forge loop found in .codex/forge." >&2
+    exit 1
+  fi
+
+  basename "$active_file" | sed 's/^loop-state\.//; s/\.md$//'
+}
+
+session_id="${1:-}"
+if [[ "${session_id:-}" == "--help" ]] || [[ "${session_id:-}" == "-h" ]]; then
+  echo "Usage: forge-cancel [SESSION_ID]" >&2
+  exit 1
+fi
+
+if [[ ! -d "$STATE_DIR" ]]; then
+  echo "Error: .codex/forge does not exist in this project." >&2
+  exit 1
+fi
+
+session_id="$(choose_session "$session_id")"
+loop_state="${STATE_DIR}/loop-state.${session_id}.md"
+
+if [[ ! -f "$loop_state" ]]; then
+  echo "Error: Session ${session_id} does not exist." >&2
+  exit 1
+fi
+
+rm -f "$loop_state"
+echo "Cancelled Forge Codex driver session ${session_id}."
+echo "Preserved: .codex/forge/forge-state.${session_id}.md"

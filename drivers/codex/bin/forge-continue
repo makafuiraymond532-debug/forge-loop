@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+PROMPT_TEMPLATE="${ROOT_DIR}/drivers/codex/prompt.md"
+STATE_DIR="$(pwd)/.codex/forge"
+
+choose_session() {
+  local explicit_session="${1:-}"
+  if [[ -n "$explicit_session" ]]; then
+    printf '%s\n' "$explicit_session"
+    return 0
+  fi
+
+  local active_file
+  active_file="$(find "$STATE_DIR" -maxdepth 1 -name 'loop-state.*.md' -type f -print | sort | while read -r file; do
+    active="$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$file" | awk -F: '$1=="active" { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }')"
+    if [[ "$active" == "true" ]]; then
+      printf '%s\n' "$file"
+      break
+    fi
+  done)"
+
+  if [[ -z "$active_file" ]]; then
+    echo "Error: No active Codex Forge loop found in .codex/forge." >&2
+    exit 1
+  fi
+
+  basename "$active_file" | sed 's/^loop-state\.//; s/\.md$//'
+}
+
+session_id="${1:-}"
+if [[ "${session_id:-}" == "--help" ]] || [[ "${session_id:-}" == "-h" ]]; then
+  echo "Usage: forge-continue [SESSION_ID]" >&2
+  exit 1
+fi
+
+if [[ ! -d "$STATE_DIR" ]]; then
+  echo "Error: .codex/forge does not exist in this project." >&2
+  exit 1
+fi
+
+session_id="$(choose_session "$session_id")"
+loop_state="${STATE_DIR}/loop-state.${session_id}.md"
+forge_state="${STATE_DIR}/forge-state.${session_id}.md"
+
+if [[ ! -f "$loop_state" ]] || [[ ! -f "$forge_state" ]]; then
+  echo "Error: Session ${session_id} is incomplete or missing state files." >&2
+  exit 1
+fi
+
+active="$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$loop_state" | awk -F: '$1=="active" { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }')"
+iteration="$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$loop_state" | awk -F: '$1=="iteration" { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }')"
+max_iterations="$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$loop_state" | awk -F: '$1=="max_iterations" { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }')"
+scope="$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$forge_state" | awk -F: '$1=="scope" { sub(/^[^:]+:[[:space:]]*/, "", $0); gsub(/^"|"$/, "", $0); print; exit }')"
+
+if [[ "$active" != "true" ]]; then
+  echo "Error: Session ${session_id} is not active." >&2
+  exit 1
+fi
+
+if [[ ! "$iteration" =~ ^[0-9]+$ ]] || [[ ! "$max_iterations" =~ ^[0-9]+$ ]]; then
+  echo "Error: Session ${session_id} has invalid iteration metadata." >&2
+  exit 1
+fi
+
+if (( iteration > max_iterations )); then
+  echo "Error: Session ${session_id} is already past max_iterations." >&2
+  exit 1
+fi
+
+prompt_text="$(sed \
+  -e "s/{SESSION}/${session_id}/g" \
+  -e "s/{SCOPE}/${scope//\//\\/}/g" \
+  -e "s/{ITERATION}/${iteration}/g" \
+  "$PROMPT_TEMPLATE")"
+
+echo "Forge Codex driver session ${session_id}, iteration ${iteration}."
+echo "Forge state: .codex/forge/forge-state.${session_id}.md"
+echo ""
+echo "Paste this into Codex:"
+echo ""
+printf '%s\n' "$prompt_text"
+
+next_iteration=$((iteration + 1))
+tmp_file="${loop_state}.tmp.$$"
+sed "s/^iteration: .*/iteration: ${next_iteration}/" "$loop_state" > "$tmp_file"
+mv "$tmp_file" "$loop_state"

@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+PROMPT_TEMPLATE="${ROOT_DIR}/drivers/codex/prompt.md"
+
+usage() {
+  cat <<'EOF'
+Usage: forge-init "SCOPE" [--coverage N] [--speed -N%] [--quality strict|moderate|lax] [--max-iterations N]
+EOF
+}
+
+require_value() {
+  local flag="$1"
+  local value="${2:-}"
+  if [[ -z "$value" ]]; then
+    echo "Error: ${flag} requires a value." >&2
+    exit 1
+  fi
+}
+
+scope="${1:-}"
+if [[ -z "$scope" ]] || [[ "$scope" == "--help" ]] || [[ "$scope" == "-h" ]]; then
+  usage
+  exit 1
+fi
+shift || true
+
+coverage_target=""
+speed_target="-20%"
+quality_target="moderate"
+max_iterations="20"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --coverage)
+      require_value "$1" "${2:-}"
+      coverage_target="$2"
+      shift 2
+      ;;
+    --speed)
+      require_value "$1" "${2:-}"
+      speed_target="$2"
+      shift 2
+      ;;
+    --quality)
+      require_value "$1" "${2:-}"
+      quality_target="$2"
+      shift 2
+      ;;
+    --max-iterations)
+      require_value "$1" "${2:-}"
+      max_iterations="$2"
+      shift 2
+      ;;
+    *)
+      echo "Error: Unknown argument '$1'." >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+case "$quality_target" in
+  strict|moderate|lax) ;;
+  *)
+    echo "Error: --quality must be strict, moderate, or lax." >&2
+    exit 1
+    ;;
+esac
+
+if [[ -n "$coverage_target" ]] && [[ ! "$coverage_target" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+  echo "Error: --coverage must be numeric." >&2
+  exit 1
+fi
+
+if [[ ! "$speed_target" =~ ^-[0-9]+%$ ]]; then
+  echo "Error: --speed must look like -20%." >&2
+  exit 1
+fi
+
+if [[ ! "$max_iterations" =~ ^[0-9]+$ ]]; then
+  echo "Error: --max-iterations must be an integer." >&2
+  exit 1
+fi
+
+project_root="$(pwd)"
+state_dir="${project_root}/.codex/forge"
+mkdir -p "$state_dir"
+
+timestamp="$(date -u +"%m%d-%H%M")"
+rand="$(od -An -N4 -tx1 /dev/urandom | tr -d ' \n' | cut -c1-4)"
+session_id="${timestamp}-${rand}"
+started_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+forge_state="${state_dir}/forge-state.${session_id}.md"
+loop_state="${state_dir}/loop-state.${session_id}.md"
+
+cat > "$forge_state" <<EOF
+---
+session_id: "${session_id}"
+scope: "${scope}"
+driver: "codex"
+state_root: ".codex/forge"
+baseline:
+  coverage: null
+  speed_seconds: null
+  tests: null
+  failures: null
+  measured_at: null
+targets:
+  min_coverage: ${coverage_target:-null}
+  speed_percent: "${speed_target}"
+  quality: "${quality_target}"
+  max_iterations: ${max_iterations}
+current_strategy: null
+stagnation_count: 0
+strategies_tried: []
+lessons: []
+ideas: []
+---
+
+## Session
+- Driver: Codex
+- Scope: ${scope}
+- Started at: ${started_at}
+- Notes: Baseline not measured yet. First iteration must establish it from real test output.
+EOF
+
+cat > "$loop_state" <<EOF
+---
+active: true
+session_id: "${session_id}"
+iteration: 1
+max_iterations: ${max_iterations}
+driver: "codex"
+state_file: ".codex/forge/forge-state.${session_id}.md"
+started_at: "${started_at}"
+---
+EOF
+
+prompt_text="$(sed \
+  -e "s/{SESSION}/${session_id}/g" \
+  -e "s/{SCOPE}/${scope//\//\\/}/g" \
+  -e "s/{ITERATION}/1/g" \
+  "$PROMPT_TEMPLATE")"
+
+echo "Initialized Forge Codex driver session ${session_id}."
+echo "Forge state: .codex/forge/forge-state.${session_id}.md"
+echo "Loop state: .codex/forge/loop-state.${session_id}.md"
+echo ""
+echo "Paste this into Codex for iteration 1:"
+echo ""
+printf '%s\n' "$prompt_text"

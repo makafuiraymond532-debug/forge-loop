@@ -11,6 +11,7 @@ next prompt to run in Codex.
 - `bin/forge-init` — create a new Forge session for the current project
 - `bin/forge-continue` — print the next iteration prompt for an existing session
 - `bin/forge-cancel` — cancel the active Codex Forge loop without deleting forge-state
+- `lib.sh` — shared state helpers used by the Codex driver scripts
 - `prompt.md` — shared prompt template used by the driver scripts
 
 ## State layout
@@ -22,3 +23,10 @@ The Codex driver stores state under `.codex/forge/` in the target project:
 
 The Forge state format stays compatible with Forge Core. Only the driver state
 location differs from the Claude Code adapter.
+
+## Safety notes
+
+- `forge-continue` derives the next iteration from recorded `## Iteration N`
+  entries in Forge state instead of blindly incrementing loop metadata.
+- If multiple active Codex sessions exist, `forge-continue` and `forge-cancel`
+  require an explicit session id instead of guessing.

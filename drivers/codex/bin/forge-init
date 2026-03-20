@@ -4,6 +4,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 PROMPT_TEMPLATE="${ROOT_DIR}/drivers/codex/prompt.md"
+LIB_PATH="${ROOT_DIR}/drivers/codex/lib.sh"
+
+source "$LIB_PATH"
 
 usage() {
   cat <<'EOF'
@@ -133,6 +136,7 @@ cat > "$loop_state" <<EOF
 active: true
 session_id: "${session_id}"
 iteration: 1
+last_prompted_iteration: 0
 max_iterations: ${max_iterations}
 driver: "codex"
 state_file: ".codex/forge/forge-state.${session_id}.md"
@@ -140,11 +144,7 @@ started_at: "${started_at}"
 ---
 EOF
 
-prompt_text="$(sed \
-  -e "s/{SESSION}/${session_id}/g" \
-  -e "s/{SCOPE}/${scope//\//\\/}/g" \
-  -e "s/{ITERATION}/1/g" \
-  "$PROMPT_TEMPLATE")"
+prompt_text="$(forge_render_prompt "$PROMPT_TEMPLATE" "$session_id" "$scope" "1")"
 
 echo "Initialized Forge Codex driver session ${session_id}."
 echo "Forge state: .codex/forge/forge-state.${session_id}.md"

@@ -13,6 +13,7 @@ mkdir -p "$CODEX_BIN_DIR"
 
 for src in \
   "skills/forge/SKILL.md" \
+  "drivers/codex/lib.sh" \
   "drivers/codex/README.md" \
   "drivers/codex/prompt.md" \
   "drivers/codex/bin/forge-init" \
@@ -42,6 +43,7 @@ ln -s "${SCRIPT_DIR}/drivers/codex/bin/forge-continue" "${CODEX_BIN_DIR}/forge-c
 ln -s "${SCRIPT_DIR}/drivers/codex/bin/forge-cancel" "${CODEX_BIN_DIR}/forge-cancel"
 
 chmod +x \
+  "${SCRIPT_DIR}/drivers/codex/lib.sh" \
   "${SCRIPT_DIR}/drivers/codex/bin/forge-init" \
   "${SCRIPT_DIR}/drivers/codex/bin/forge-continue" \
   "${SCRIPT_DIR}/drivers/codex/bin/forge-cancel"

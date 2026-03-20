@@ -31,6 +31,16 @@ assert_file() {
   fi
 }
 
+assert_equals() {
+  local expected="$1"
+  local actual="$2"
+  local message="$3"
+
+  if [[ "$expected" != "$actual" ]]; then
+    fail "${message}: expected '${expected}', got '${actual}'"
+  fi
+}
+
 test_codex_init_continue_cancel() {
   local repo_dir
   repo_dir="$(mktemp -d)"
@@ -45,7 +55,19 @@ test_codex_init_continue_cancel() {
     output_continue="$("$CONTINUE_PATH" "$session_id")"
     assert_contains "$output_continue" "iteration 1" "forge-continue should report current iteration before incrementing"
     next_iteration="$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' ".codex/forge/loop-state.${session_id}.md" | awk -F: '$1=="iteration" { sub(/^[^:]+:[[:space:]]*/, "", $0); print; exit }')"
-    [[ "$next_iteration" == "2" ]] || fail "forge-continue should increment iteration to 2"
+    assert_equals "1" "$next_iteration" "forge-continue should align loop state with the next required recorded iteration"
+
+    output_continue_repeat="$("$CONTINUE_PATH" "$session_id")"
+    assert_contains "$output_continue_repeat" "iteration 1" "forge-continue should not silently drift iterations when forge-state has not advanced"
+
+    cat >> ".codex/forge/forge-state.${session_id}.md" <<'EOF'
+
+## Iteration 1 - coverage-push
+- Coverage: 80.0 -> 80.8 (+0.8%)
+EOF
+
+    output_continue_after_record="$("$CONTINUE_PATH" "$session_id")"
+    assert_contains "$output_continue_after_record" "iteration 2" "forge-continue should advance after forge-state records iteration 1"
 
     output_cancel="$("$CANCEL_PATH" "$session_id")"
     assert_contains "$output_cancel" "Cancelled Forge Codex driver session ${session_id}." "forge-cancel should cancel the session"
@@ -71,9 +93,36 @@ test_codex_install() {
   rm -rf "$repo_dir" "$tmp_home"
 }
 
+test_multiple_active_sessions_require_explicit_id() {
+  local repo_dir
+  repo_dir="$(mktemp -d)"
+  (
+    cd "$repo_dir"
+    output_init_one="$("$INIT_PATH" "Scope one")"
+    session_one="$(printf '%s\n' "$output_init_one" | awk '/Initialized Forge Codex driver session/ {print $6}' | tr -d '.')"
+    output_init_two="$("$INIT_PATH" "Scope two")"
+    session_two="$(printf '%s\n' "$output_init_two" | awk '/Initialized Forge Codex driver session/ {print $6}' | tr -d '.')"
+
+    if "$CONTINUE_PATH" >/tmp/forge-multi.out 2>/tmp/forge-multi.err; then
+      fail "forge-continue should fail when multiple active sessions exist without an explicit id"
+    fi
+
+    assert_contains "$(cat /tmp/forge-multi.err)" "Multiple active Codex Forge sessions found" "forge-continue should explain the ambiguity"
+
+    output_continue="$("$CONTINUE_PATH" "$session_one")"
+    assert_contains "$output_continue" "$session_one" "forge-continue should accept an explicit session id"
+
+    output_cancel="$("$CANCEL_PATH" "$session_two")"
+    assert_contains "$output_cancel" "$session_two" "forge-cancel should accept an explicit session id"
+    rm -f /tmp/forge-multi.out /tmp/forge-multi.err
+  )
+  rm -rf "$repo_dir"
+}
+
 main() {
   test_codex_init_continue_cancel
   test_codex_install
+  test_multiple_active_sessions_require_explicit_id
   echo "codex-driver tests passed"
 }
 

